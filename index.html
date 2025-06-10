@@ -1,29 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-g">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Price Pulse</title>
+    <title>PricePulse</title>
     <style>
         body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        input[type="text"] { width: 80%; padding: 8px; }
-        input[type="submit"] { padding: 8px 15px; }
-        h2 { color: #007BFF; }
+        .price { font-size: 1.5em; font-weight: bold; color: #28a745; }
     </style>
 </head>
 <body>
-    <h1>User Input Echo</h1>
-    <p>Enter some text below to see it echoed back to you.</p>
+    <h1>Welcome to PricePulse!</h1>
+    <p>This is a simple web application that displays the current price of a product.</p>
 
-    <form action="/echo" method="POST">
-        <input type="text" name="userInput" placeholder="Enter text here...">
-        <input type="submit" value="Echo Text">
-    </form>
-
-    {{ if .UserInput }}
-    <h2>You entered:</h2>
-    <p><strong>{{ .UserInput }}</strong></p>
-    {{ end }}
+    <h2>Example Price:</h2>
+    <p class="price">{{.Price}}</p>
 
 </body>
 </html>
