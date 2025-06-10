@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-g">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Pulse</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        input[type="text"] { width: 80%; padding: 8px; }
+        input[type="submit"] { padding: 8px 15px; }
+        h2 { color: #007BFF; }
+    </style>
+</head>
+<body>
+    <h1>User Input Echo</h1>
+    <p>Enter some text below to see it echoed back to you.</p>
+
+    <form action="/echo" method="POST">
+        <input type="text" name="userInput" placeholder="Enter text here...">
+        <input type="submit" value="Echo Text">
+    </form>
+
+    {{ if .UserInput }}
+    <h2>You entered:</h2>
+    <p><strong>{{ .UserInput }}</strong></p>
+    {{ end }}
+
+</body>
+</html>
