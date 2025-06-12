@@ -43,6 +43,7 @@ func main() {
 	http.HandleFunc("/users", app.createUserHandler)
 	http.HandleFunc("/signals", app.createSignalHandler)
 	http.HandleFunc("/collect-data", app.collectDataHandler)
+	http.HandleFunc("/analysis", app.analysisHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

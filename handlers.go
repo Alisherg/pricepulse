@@ -157,3 +157,54 @@ func (a *App) collectDataHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "data collected and signals checked", "price": currentPrice})
 }
+
+// analysisHandler calculates and returns a simple analysis of the price data.
+func (a *App) analysisHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := context.Background()
+	assetID := "bitcoin" // Hardcode for now
+
+	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
+
+	iter := a.db.Collection("price_history").
+		Where("assetId", "==", assetID).
+		Where("timestamp", ">=", twentyFourHoursAgo).
+		Documents(ctx)
+	defer iter.Stop()
+
+	var totalPrice float64
+	var count int
+
+	// Iterate through the documents and sum the prices.
+	for {
+		doc, err := iter.Next()
+		if err != nil {
+			break
+		}
+		priceData := doc.Data()
+		price, ok := priceData["price"].(float64)
+		if !ok {
+			continue
+		}
+		totalPrice += price
+		count++
+	}
+
+	if count == 0 {
+		http.Error(w, "Not enough data for analysis", http.StatusNotFound)
+		return
+	}
+
+	// Calculate the average.
+	averagePrice := totalPrice / float64(count)
+
+	response := map[string]interface{}{
+		"assetId":               assetID,
+		"time_window_hours":     24,
+		"simple_moving_average": averagePrice,
+		"data_points_used":      count,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
