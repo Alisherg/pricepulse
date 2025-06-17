@@ -44,6 +44,9 @@ func main() {
 	http.HandleFunc("/signals", app.createSignalHandler)
 	http.HandleFunc("/collect-data", app.collectDataHandler)
 	http.HandleFunc("/analysis", app.analysisHandler)
+	http.HandleFunc("/new-signal", app.showNewSignalFormHandler)
+	http.HandleFunc("/create-signal", app.handleCreateSignalForm)
+	http.HandleFunc("/signals/", app.viewUserSignalsHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -15,6 +15,8 @@ require (
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.0 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.16.1+incompatible // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.54.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect

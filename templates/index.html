@@ -62,7 +62,7 @@
 
         .hero {
             text-align: center;
-            padding: 4rem 0;
+            padding: 4rem 1rem;
             background-color: var(--light-color);
             border-radius: 8px;
             margin-bottom: 2rem;
@@ -77,8 +77,26 @@
         .hero p {
             font-size: 1.2rem;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto 2rem auto; /* Added margin-bottom */
         }
+        
+        /* --- NEW STYLE FOR THE BUTTON --- */
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--light-color);
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #0056b3;
+        }
+
 
         .section {
             background: var(--light-color);
@@ -141,6 +159,8 @@
         <section class="hero">
             <h2>Automated Crypto Alerts, Simplified.</h2>
             <p>Stop watching the charts. Let PricePulse notify you of significant market movements so you can act faster.</p>
+            
+            <a href="/new-signal" class="cta-button">Create Your First Alert</a>
         </section>
 
         <section class="section">
@@ -149,7 +169,7 @@
                 <div class="feature-card">
                     <div class="icon">①</div>
                     <h3>Set Your Asset</h3>
-                    <p>Choose the cryptocurrency you want to monitor, like Bitcoin or Ethereum.</p>
+                    <p>The application currently monitors Bitcoin, with support for more assets coming soon.</p>
                 </div>
                 <div class="feature-card">
                     <div class="icon">②</div>
@@ -159,7 +179,7 @@
                 <div class="feature-card">
                     <div class="icon">③</div>
                     <h3>Get Notified</h3>
-                    <p>Receive an alert the moment your conditions are met. (Email notifications coming soon!)</p>
+                    <p>Receive an email alert the moment your conditions are met.</p>
                 </div>
             </div>
         </section>
