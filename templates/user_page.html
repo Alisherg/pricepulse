@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Signals</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f8f9fa; }
+        h1, h2 { color: #343a40; }
+        .email { font-weight: normal; color: #007bff; }
+        .card { background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { font-weight: 600; }
+        .status-active { color: #28a745; font-weight: 600; }
+        .status-triggered { color: #dc3545; font-weight: 600; }
+        .no-data { font-style: italic; }
+        .back-link { display: inline-block; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Signals for <span class="email">{{.Email}}</span></h1>
+
+    <div class="card">
+        <h2>Active Signals</h2>
+        {{if .ActiveSignals}}
+        <table>
+            <tr><th>Asset</th><th>Threshold</th><th>Price at Creation</th><th>Status</th></tr>
+            {{range .ActiveSignals}}
+            <tr>
+                <td>{{.AssetID}}</td>
+                <td>{{.ChangeThresholdPercentage}}%</td>
+                <td>${{.PriceAtCreation}}</td>
+                <td class="status-active">{{.Status}}</td>
+            </tr>
+            {{end}}
+        </table>
+        {{else}}
+        <p class="no-data">You have no active signals.</p>
+        {{end}}
+    </div>
+
+    <div class="card">
+        <h2>Latest 24h Analysis for Bitcoin</h2>
+        {{if .Analysis.DataPointsUsed}}
+            <p><strong>Simple Moving Average:</strong> ${{printf "%.2f" .Analysis.SimpleMovingAverage}}</p>
+            <p><strong>Data Points Used:</strong> {{.Analysis.DataPointsUsed}}</p>
+        {{else}}
+            <p class="no-data">Not enough data for analysis yet.</p>
+        {{end}}
+    </div>
+    <a href="/new-signal" class="back-link">＋ Create a New Signal</a>
+    <a href="/" class="back-link" style="margin-left: 20px;">← Back to Home</a>
+</body>
+</html>

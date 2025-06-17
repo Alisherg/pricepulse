@@ -1,66 +1,59 @@
 package main
 
 import (
-	"html/template"
+	"context"
 	"log"
 	"net/http"
+	"os"
+
+	"cloud.google.com/go/firestore"
 )
 
-// PageData is a struct that holds the data we want to pass to the HTML template.
-type PageData struct {
-	UserInput string
-}
+// priceFetcherFunc defines a function type for fetching prices.
+type priceFetcherFunc func(assetID string, apiURL string) (map[string]map[string]interface{}, error)
 
-// handler for the root page "/"
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse our HTML file.
-	tmpl, err := template.ParseFiles("index.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Create an empty PageData object
-	data := PageData{UserInput: ""}
-
-	// Execute the template, writing the generated HTML to the response.
-	tmpl.Execute(w, data)
-}
-
-// handler for the "/echo" page which processes the form submission
-func echoHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Get the text from the form field named "userInput".
-	userInput := r.FormValue("userInput")
-
-	// Parse the HTML file again.
-	tmpl, err := template.ParseFiles("index.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Create a PageData object containing the user's submitted text.
-	data := PageData{UserInput: userInput}
-
-	// Execute the template with the user's data.
-	tmpl.Execute(w, data)
+// App struct holds the Firestore client and the price fetching function.
+type App struct {
+	db           *firestore.Client
+	priceFetcher priceFetcherFunc
 }
 
 func main() {
-	// Register the rootHandler function to handle requests to the root URL "/".
-	http.HandleFunc("/", rootHandler)
+	ctx := context.Background()
+	projectID := os.Getenv("GCP_PROJECT")
+	if projectID == "" {
+		projectID = "pricepulse-demo" // Default for local development
+		log.Printf("GCP_PROJECT not set, using default '%s'", projectID)
+	}
 
-	// Register the echoHandler function to handle requests to the "/echo" URL.
-	http.HandleFunc("/echo", echoHandler)
+	client, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		log.Fatalf("Failed to create Firestore client: %v", err)
+	}
+	defer client.Close()
 
-	log.Println("Server starting on port 8080...")
-	// Start the HTTP server on port 8080.
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	// Create a new App instance, "injecting" the REAL priceFetcher function.
+	app := &App{
+		db:           client,
+		priceFetcher: getPriceFromCoinGecko,
+	}
+
+	http.HandleFunc("/", app.rootHandler)
+	http.HandleFunc("/health", app.healthCheckHandler)
+	http.HandleFunc("/users", app.createUserHandler)
+	http.HandleFunc("/signals", app.createSignalHandler)
+	http.HandleFunc("/collect-data", app.collectDataHandler)
+	http.HandleFunc("/analysis", app.analysisHandler)
+	http.HandleFunc("/new-signal", app.showNewSignalFormHandler)
+	http.HandleFunc("/create-signal", app.handleCreateSignalForm)
+	http.HandleFunc("/signals/", app.viewUserSignalsHandler)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Server starting on port %s...", port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}
 }

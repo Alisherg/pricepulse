@@ -23,8 +23,8 @@ WORKDIR /app
 # Copy the compiled application from the "builder" stage
 COPY --from=builder /app/pricepulse .
 
-# Copy the html template
-COPY index.html .
+# Copy the templates directory into the final image
+COPY templates/ ./templates/
 
 # Expose the port
 EXPOSE 8080
