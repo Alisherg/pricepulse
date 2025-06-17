@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -15,6 +16,9 @@ import (
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 )
+
+//go:embed templates/*
+var templatesFS embed.FS
 
 // The structure for the Signal entity
 type Signal struct {
@@ -37,7 +41,7 @@ type AnalysisResult struct {
 
 // rootHandler serves the main index.html page.
 func (a *App) rootHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/index.html")
+	tmpl, err := template.ParseFS(templatesFS, "templates/index.html")
 	if err != nil {
 		http.Error(w, "Could not parse template", http.StatusInternalServerError)
 		return
@@ -117,17 +121,33 @@ func (a *App) collectDataHandler(w http.ResponseWriter, r *http.Request) {
 	assetID := "bitcoin"
 	priceData, err := a.priceFetcher(assetID, "https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd")
 	if err != nil {
+		log.Printf("ERROR in collectDataHandler: Failed to fetch price data: %v", err)
 		http.Error(w, "Failed to fetch price data", http.StatusInternalServerError)
 		return
 	}
-	currentPrice, _ := priceData[assetID]["usd"].(float64)
-	a.db.Collection("price_history").Add(ctx, map[string]interface{}{"assetId": assetID, "price": currentPrice, "timestamp": time.Now()})
+	currentPrice, ok := priceData[assetID]["usd"].(float64)
+	if !ok {
+		log.Printf("ERROR in collectDataHandler: Failed to parse price from CoinGecko response: %v", priceData)
+		http.Error(w, "Could not parse current price from external API", http.StatusInternalServerError)
+		return
+	}
+	_, _, err = a.db.Collection("price_history").Add(ctx, map[string]interface{}{"assetId": assetID, "price": currentPrice, "timestamp": time.Now()})
+	if err != nil {
+		log.Printf("ERROR in collectDataHandler: Failed to add document to price_history: %v", err)
+		http.Error(w, "Failed to write to database", http.StatusInternalServerError)
+		return
+	}
 	iter := a.db.Collection("signals").Where("assetId", "==", assetID).Where("status", "==", "active").Documents(ctx)
 	defer iter.Stop()
 	for {
 		doc, err := iter.Next()
-		if err != nil {
+		if err == iterator.Done {
 			break
+		}
+		if err != nil {
+			log.Printf("ERROR in collectDataHandler: Failed to iterate signals (check for missing index on 'assetId' and 'status'): %v", err)
+			http.Error(w, "Failed to query signals", http.StatusInternalServerError)
+			return
 		}
 		var s Signal
 		doc.DataTo(&s)
@@ -183,7 +203,7 @@ func (a *App) analysisHandler(w http.ResponseWriter, r *http.Request) {
 
 // showNewSignalFormHandler renders the form to create a new signal.
 func (a *App) showNewSignalFormHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/new_signal_form.html")
+	tmpl, err := template.ParseFS(templatesFS, "templates/new_signal_form.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -305,7 +325,7 @@ func (a *App) viewUserSignalsHandler(w http.ResponseWriter, r *http.Request) {
 		"Analysis":      analysisData,
 	}
 
-	tmpl, err := template.ParseFiles("templates/user_page.html")
+	tmpl, err := template.ParseFS(templatesFS, "templates/user_page.html")
 	if err != nil {
 		http.Error(w, "Could not parse user page template", http.StatusInternalServerError)
 		return
