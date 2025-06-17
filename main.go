@@ -20,13 +20,29 @@ type App struct {
 
 func main() {
 	ctx := context.Background()
-	projectID := os.Getenv("GCP_PROJECT")
-	if projectID == "" {
-		projectID = "pricepulse-demo" // Default for local development
-		log.Printf("GCP_PROJECT not set, using default '%s'", projectID)
+	var client *firestore.Client
+	var err error
+
+	// Check for a "production" environment flag
+	if os.Getenv("ENV") == "production" {
+		log.Println("Running in PRODUCTION mode. Connecting to live Firestore.")
+
+		projectID := os.Getenv("GCP_PROJECT")
+		databaseID := os.Getenv("FIRESTORE_DATABASE_ID")
+
+		client, err = firestore.NewClientWithDatabase(ctx, projectID, databaseID)
+
+	} else {
+		log.Println("Running in LOCAL mode. Connecting to Firestore emulator.")
+
+		if os.Getenv("FIRESTORE_EMULATOR_HOST") == "" {
+			log.Fatal("You are running in local mode but FIRESTORE_EMULATOR_HOST is not set.")
+		}
+
+		projectID := "pricepulse-demo"
+		client, err = firestore.NewClient(ctx, projectID)
 	}
 
-	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
 		log.Fatalf("Failed to create Firestore client: %v", err)
 	}
